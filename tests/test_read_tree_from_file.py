@@ -1,4 +1,4 @@
-from src.main import Leaf, Node, tree_parser
+from src.main import Condition, Leaf, Node, tree_parser
 
 
 def test_should_read_single_leaf_tree():
@@ -23,7 +23,7 @@ def test_should_read_single_node_tree():
         2:leaf=0.0
     """
     assert tree_parser(one_node_tree) == {
-        "0": Node("device_type=pc", "1", "2"),
+        "0": Node(Condition("device_type", "pc"), "1", "2"),
         "1": Leaf(0.0),
         "2": Leaf(0.0),
     }
@@ -38,8 +38,8 @@ def test_should_read_nested_node_tree():
         4:leaf=2.0
     """
     assert tree_parser(nested_node_tree) == {
-        "0": Node("device_type=pc", "1", "2"),
-        "1": Node("device_type=mobile", "3", "4"),
+        "0": Node(Condition("device_type", "pc"), "1", "2"),
+        "1": Node(Condition("device_type", "mobile"), "3", "4"),
         "2": Leaf(0.0),
         "3": Leaf(1.0),
         "4": Leaf(2.0),

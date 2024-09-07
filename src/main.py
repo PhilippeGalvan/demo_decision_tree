@@ -7,6 +7,23 @@ logger = getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
+class Condition:
+    feature: str
+    value: str
+
+    @classmethod
+    def from_string(cls, string: str) -> Self:
+        """
+        Create a Condition from a string.
+
+        >>> Condition.from_string("device_type=pc")
+        Condition(feature='device_type', value='pc')
+        """
+        feature, value = string.split("=")
+        return cls(feature, value)
+
+
+@dataclass(frozen=True, slots=True)
 class Leaf:
     value: float
 
@@ -37,9 +54,11 @@ class Node:
         Node(condition='device_type=pc', yes='1', no='2')
         """
         _, raw_node = string.split(":")
-        condition, branches = raw_node.split(" ")
+        raw_condition, branches = raw_node.split(" ")
 
-        condition = condition.removeprefix("[").removesuffix("]")
+        condition = Condition.from_string(
+            raw_condition.removeprefix("[").removesuffix("]")
+        )
 
         yes, no = branches.split(",")
         yes = yes.removeprefix("yes=").strip()
