@@ -48,6 +48,10 @@ class Leaf:
         _, value = string.split(":leaf=")
         return cls(float(value))
 
+    def __post_init__(self):
+        if not 0 <= self.value <= 1:
+            raise ValueError(f"Invalid leaf value: {self.value}, must be in [0, 1]")
+
 
 @dataclass(frozen=True, slots=True)
 class Node:
