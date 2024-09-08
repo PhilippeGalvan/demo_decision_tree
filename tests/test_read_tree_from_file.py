@@ -1,4 +1,4 @@
-from src.main import Condition, Leaf, Node, tree_parser
+from src.main import AndCondition, Condition, Leaf, Node, tree_parser
 
 
 def test_should_read_single_leaf_tree():
@@ -23,7 +23,24 @@ def test_should_read_single_node_tree():
         2:leaf=0.0
     """
     assert tree_parser(one_node_tree) == {
-        "0": Node(Condition("device_type", "pc"), "1", "2"),
+        "0": Node(
+            AndCondition([Condition("device_type", "pc", is_equal=True)]), "1", "2"
+        ),
+        "1": Leaf(0.0),
+        "2": Leaf(0.0),
+    }
+
+
+def test_should_handle_inequalities():
+    inequality_tree = """
+        0:[device_type!=pc] yes=1,no=2
+        1:leaf=0.0
+        2:leaf=0.0
+    """
+    assert tree_parser(inequality_tree) == {
+        "0": Node(
+            AndCondition([Condition("device_type", "pc", is_equal=False)]), "1", "2"
+        ),
         "1": Leaf(0.0),
         "2": Leaf(0.0),
     }
@@ -38,8 +55,12 @@ def test_should_read_nested_node_tree():
         4:leaf=2.0
     """
     assert tree_parser(nested_node_tree) == {
-        "0": Node(Condition("device_type", "pc"), "1", "2"),
-        "1": Node(Condition("device_type", "mobile"), "3", "4"),
+        "0": Node(
+            AndCondition([Condition("device_type", "pc", is_equal=True)]), "1", "2"
+        ),
+        "1": Node(
+            AndCondition([Condition("device_type", "mobile", is_equal=True)]), "3", "4"
+        ),
         "2": Leaf(0.0),
         "3": Leaf(1.0),
         "4": Leaf(2.0),
@@ -65,3 +86,47 @@ def test_should_skip_empty_lines():
 
     """
     assert tree_parser(empty_line_tree) == {"1": Leaf(0.0)}
+
+
+def test_should_parse_and_condition():
+    tree = """
+        0:[device_type=pc||and||os=linux] yes=1,no=2
+        1:leaf=1.0
+        2:leaf=2.0
+    """
+    assert tree_parser(tree) == {
+        "0": Node(
+            AndCondition(
+                [
+                    Condition("device_type", "pc", is_equal=True),
+                    Condition("os", "linux", is_equal=True),
+                ]
+            ),
+            "1",
+            "2",
+        ),
+        "1": Leaf(1.0),
+        "2": Leaf(2.0),
+    }
+
+
+def test_should_parse_or_condition_as_and_condition():
+    tree = """
+        0:[device_type=pc||or||os=linux] yes=1,no=2
+        1:leaf=1.0
+        2:leaf=2.0
+    """
+    assert tree_parser(tree) == {
+        "0": Node(
+            AndCondition(
+                [
+                    Condition("device_type", "pc", is_equal=False),
+                    Condition("os", "linux", is_equal=False),
+                ]
+            ),
+            "1",
+            "2",
+        ),
+        "1": Leaf(1.0),
+        "2": Leaf(2.0),
+    }
