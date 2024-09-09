@@ -49,3 +49,39 @@ def test_should_read_strategy_from_nested_node_tree():
         ),
         Strategy((Condition("device_type", "pc", is_equal=False),), Leaf(0.0)),
     }
+
+
+def test_should_ignore_always_false_strategies_when_same_feature_and_value_with_opposite_statement():
+    always_false_strategy_tree = {
+        Condition("device_type", "pc", is_equal=True): {
+            True: {
+                Condition("device_type", "pc", is_equal=False): {
+                    True: Leaf(1.0),
+                    False: None,
+                },
+            },
+            False: None,
+        },
+    }
+
+    strategies = read_strategies_from_tree(always_false_strategy_tree)
+
+    assert strategies == set()
+
+
+def test_should_ignore_always_false_strategies_when_same_feature_and_equality_on_different_values():
+    always_false_strategy_tree = {
+        Condition("device_type", "pc", is_equal=True): {
+            True: {
+                Condition("device_type", "mobile", is_equal=True): {
+                    True: Leaf(1.0),
+                    False: None,
+                },
+            },
+            False: None,
+        },
+    }
+
+    strategies = read_strategies_from_tree(always_false_strategy_tree)
+
+    assert strategies == set()

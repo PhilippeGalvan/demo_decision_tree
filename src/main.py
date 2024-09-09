@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from logging import DEBUG, basicConfig, getLogger
 from pathlib import Path
@@ -5,6 +6,10 @@ from typing import Any, Self
 
 basicConfig(level=DEBUG)
 logger = getLogger(__name__)
+
+
+class AlwaysFalseStrategyError(Exception):
+    pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,6 +127,42 @@ class Strategy:
         )
         return f"{formated_condition} : {self.value.value}"
 
+    def __post_init__(self):
+        self._forbid_always_false_strategies()
+
+    def _forbid_always_false_strategies(self) -> None:
+        # This grouping by feature is O(n2) reduces the number of comparisons only to the features having multiple conditions
+        conditions_grouped_by_feature: dict[str, list[Condition]] = defaultdict(list)
+        for condition in self.conditions:
+            conditions_grouped_by_feature[condition.feature].append(condition)
+
+        for feature_conditions in conditions_grouped_by_feature.values():
+            if len(feature_conditions) == 1:
+                continue
+
+            for index, condition_pointer in enumerate(feature_conditions):
+                for condition_evaluated in feature_conditions[index + 1 :]:
+                    has_same_feature_equality_on_different_values = (
+                        condition_pointer.feature == condition_evaluated.feature
+                        and condition_pointer.value != condition_evaluated.value
+                        and condition_pointer.is_equal is condition_evaluated.is_equal
+                    )
+
+                    has_same_feature_inequality_on_same_value = (
+                        condition_pointer.feature == condition_evaluated.feature
+                        and condition_pointer.value == condition_evaluated.value
+                        and condition_pointer.is_equal
+                        is not condition_evaluated.is_equal
+                    )
+
+                    if (
+                        has_same_feature_equality_on_different_values
+                        or has_same_feature_inequality_on_same_value
+                    ):
+                        raise AlwaysFalseStrategyError(
+                            f"Always false strategy: {self} for {condition_pointer} and {condition_evaluated}"
+                        )
+
 
 Tree = dict[str, Leaf | Node]
 BinaryTree = dict[Condition, Any]
@@ -198,8 +239,12 @@ def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
 
     def crawl(subtree: BinaryTree | Leaf | None, conditions: tuple[Condition, ...]):
         if isinstance(subtree, Leaf):
-            strategies.add(Strategy(conditions, subtree))
-            return
+            try:
+                strategies.add(Strategy(conditions, subtree))
+            except AlwaysFalseStrategyError as e:
+                logger.debug(e)
+            finally:
+                return
 
         if subtree is None:
             # Skip redundant strategy

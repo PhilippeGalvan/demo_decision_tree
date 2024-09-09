@@ -72,7 +72,7 @@ def test_should_format_nested_strategy_to_expected_format(
         # fmt: off
         (
             "0:[device_type=pc] yes=1,no=2\n"
-            "   1:[device_type=mobile] yes=3,no=4\n"
+            "   1:[country=argentina] yes=3,no=4\n"
             "       3:leaf=0.3\n"
             "       4:leaf=0.4\n"
             "   2:leaf=0.2\n"
@@ -83,8 +83,8 @@ def test_should_format_nested_strategy_to_expected_format(
     expected_output = (
         # fmt: off
         "device_type!=pc : 0.2\n"
-        "device_type=pc & device_type!=mobile : 0.4\n"
-        "device_type=pc & device_type=mobile : 0.3\n"
+        "device_type=pc & country!=argentina : 0.4\n"
+        "device_type=pc & country=argentina : 0.3\n"
         # fmt: on
     )
 
