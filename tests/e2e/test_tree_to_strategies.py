@@ -3,6 +3,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
+from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
 from src.main import main
 
 cwd = Path(__file__).parent
@@ -28,13 +29,21 @@ def temp_file_factory():
 
 def test_should_convert_complex_tree_file_to_strategies_file(temp_output_file):
     exemple_tree_file = cwd.joinpath("tree_to_convert__288_29.txt")
+    expected_strategies_file = cwd.joinpath(
+        "always_possible_strategies_from_tree__288_29.txt"
+    )
+    if not IGNORE_ALWAYS_FALSE_STRATEGIES:
+        expected_strategies_file = cwd.joinpath("strategies_from_tree__288_29.txt")
 
     main(exemple_tree_file, temp_output_file)
 
     with open(temp_output_file) as f:
         strategies = f.read()
 
-    assert strategies == ""
+    with open(expected_strategies_file) as f:
+        expected_strategies = f.read()
+
+    assert strategies == expected_strategies
 
 
 def test_should_format_1_node_strategy_to_expected_format(

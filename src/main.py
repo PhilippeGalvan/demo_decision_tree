@@ -4,6 +4,8 @@ from logging import DEBUG, basicConfig, getLogger
 from pathlib import Path
 from typing import Any, Self
 
+from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
+
 basicConfig(level=DEBUG)
 logger = getLogger(__name__)
 
@@ -128,7 +130,8 @@ class Strategy:
         return f"{formated_condition} : {self.value.value}"
 
     def __post_init__(self):
-        self._forbid_always_false_strategies()
+        if IGNORE_ALWAYS_FALSE_STRATEGIES:
+            self._forbid_always_false_strategies()
 
     def _forbid_always_false_strategies(self) -> None:
         # This grouping by feature is O(n2) reduces the number of comparisons only to the features having multiple conditions
@@ -145,7 +148,11 @@ class Strategy:
                     has_same_feature_equality_on_different_values = (
                         condition_pointer.feature == condition_evaluated.feature
                         and condition_pointer.value != condition_evaluated.value
-                        and condition_pointer.is_equal is condition_evaluated.is_equal
+                        and (
+                            condition_pointer.is_equal
+                            is condition_evaluated.is_equal
+                            is True
+                        )
                     )
 
                     has_same_feature_inequality_on_same_value = (
@@ -234,7 +241,9 @@ def _tree_to_binary_tree(
     }
 
 
-def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
+def read_strategies_from_tree(
+    tree: BinaryTree, ignore_impossible: bool = True
+) -> set[Strategy]:
     strategies = set()
 
     def crawl(subtree: BinaryTree | Leaf | None, conditions: tuple[Condition, ...]):
