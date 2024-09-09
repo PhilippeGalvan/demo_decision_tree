@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from logging import DEBUG, basicConfig, getLogger
+from pathlib import Path
 from typing import Any, Self
 
 basicConfig(level=DEBUG)
@@ -214,3 +215,20 @@ def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
 
     crawl(tree, tuple())
     return strategies
+
+
+def main(tree_file_path: Path, strategies_file_path: Path):
+    with open(tree_file_path) as f:
+        tree = f.read()
+
+    tree = parse_tree(tree)
+    strategies = read_strategies_from_tree(tree)
+
+    with open(strategies_file_path, "w", newline="\n") as f:
+        # This is for the sake of output consistency at the expense of some memory
+        serialized_strategies = sorted(
+            strategy.to_human_readable_format() for strategy in strategies
+        )
+        for strategy in serialized_strategies:
+            f.write(strategy)
+            f.write("\n")
