@@ -175,6 +175,13 @@ Tree = dict[str, Leaf | Node]
 BinaryTree = dict[Condition, Any]
 
 
+def _parse_tree_row(row: str) -> Leaf | Node:
+    if ":leaf" in row:
+        return Leaf.from_standardized_string(row)
+
+    return Node.from_standardized_string(row)
+
+
 def parse_tree(tree: str) -> BinaryTree | Leaf:
     raw_tree = [line.strip() for line in tree.splitlines()]
 
@@ -188,17 +195,7 @@ def parse_tree(tree: str) -> BinaryTree | Leaf:
         if id in parsed_tree:
             raise ValueError(f"Unexpected duplicate id: {id}")
 
-        if ":leaf" in line:
-            leaf = Leaf.from_standardized_string(line)
-            parsed_tree[id] = leaf
-            continue
-
-        if ":[" in line:
-            node = Node.from_standardized_string(line)
-            parsed_tree[id] = node
-            continue
-
-        raise ValueError(f"Cant parse line: {line}")
+        parsed_tree[id] = _parse_tree_row(line)
 
     return _tree_to_binary_tree(parsed_tree)
 
