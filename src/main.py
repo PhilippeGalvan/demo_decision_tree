@@ -20,6 +20,10 @@ class AlwaysFalseStrategyError(Exception):
     pass
 
 
+class NodelessTreeError(Exception):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class Condition:
     feature: str
@@ -188,7 +192,7 @@ def _parse_tree_row(row: str) -> Leaf | Node:
     return Node.from_standardized_string(row)
 
 
-def parse_tree(tree: str) -> BinaryTree | Leaf:
+def parse_tree(tree: str) -> BinaryTree:
     raw_tree = [line.strip() for line in tree.splitlines()]
 
     parsed_tree: dict[str, Leaf | Node] = {}
@@ -203,7 +207,11 @@ def parse_tree(tree: str) -> BinaryTree | Leaf:
 
         parsed_tree[id] = _parse_tree_row(line)
 
-    return _tree_to_binary_tree(parsed_tree)
+    binary_tree = _tree_to_binary_tree(parsed_tree)
+    if isinstance(binary_tree, Leaf):
+        raise NodelessTreeError("Expected a tree with at least one node")
+
+    return binary_tree
 
 
 def _tree_to_binary_tree(

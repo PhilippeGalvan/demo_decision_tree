@@ -2,12 +2,17 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from src.main import Condition, Leaf, parse_tree
+from src.main import Condition, Leaf, NodelessTreeError, parse_tree
 
 
-def test_should_read_single_leaf_tree():
+def test_should_fail_for_single_leaf_tree():
+    """
+    We consider that a single leaf tree is a special case where the value should always be 1.0.
+    This could be handled specifically if accepted.
+    """
     one_leaf_tree = "0:leaf=0.0"
-    assert parse_tree(one_leaf_tree) == Leaf(0.0)
+    with pytest.raises(NodelessTreeError):
+        assert parse_tree(one_leaf_tree)
 
 
 def test_should_read_single_node_tree():
@@ -65,8 +70,10 @@ def test_should_log_empty_lines(caplog):
     caplog.set_level(10)
 
     empty_line_tree = """
-        1:leaf=0.0
+        0:[device_type=pc] yes=1,no=2
 
+        1:leaf=0.0
+        2:leaf=1.0
     """
     parse_tree(empty_line_tree)
     assert "Skipping empty line: 0" in caplog.text
@@ -75,11 +82,16 @@ def test_should_log_empty_lines(caplog):
 
 def test_should_skip_empty_lines():
     empty_line_tree = """
+        0:[device_type=pc] yes=1,no=2
 
         1:leaf=0.0
-
+        2:leaf=1.0
     """
-    assert parse_tree(empty_line_tree) == Leaf(0.0)
+    equivalent_tree = """0:[device_type=pc] yes=1,no=2
+        1:leaf=0.0
+        2:leaf=1.0
+    """
+    assert parse_tree(empty_line_tree) == parse_tree(equivalent_tree)
 
 
 def test_should_parse_or_condition_as_nested_not_and():
@@ -123,8 +135,13 @@ def test_should_fail_for_leaves_in_impossible_range(
     threshold_impossible_leaf_value: str,
     expected_behavior,
 ):
+    """
+    We keep this test as a demonstration of how we could handle value constraints on leaves.
+    """
     impossible_range_tree = f"""
-        0:leaf={threshold_impossible_leaf_value}
+        0:[device_type=pc] yes=1,no=2
+        1:leaf=0.0
+        2:leaf={threshold_impossible_leaf_value}
     """
     with expected_behavior:
         parse_tree(impossible_range_tree)
