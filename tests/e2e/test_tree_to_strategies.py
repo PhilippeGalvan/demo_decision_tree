@@ -7,6 +7,7 @@ from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
 from src.main import main
 
 cwd = Path(__file__).parent
+test_folder = cwd.joinpath("test_datasets")
 
 
 @pytest.fixture
@@ -27,13 +28,14 @@ def temp_file_factory():
         yield _temp_file_factory
 
 
-def test_should_convert_complex_tree_file_to_strategies_file(temp_output_file):
-    exemple_tree_file = cwd.joinpath("tree_to_convert__288_29.txt")
-    expected_strategies_file = cwd.joinpath(
-        "always_possible_strategies_from_tree__288_29.txt"
-    )
-    if not IGNORE_ALWAYS_FALSE_STRATEGIES:
-        expected_strategies_file = cwd.joinpath("strategies_from_tree__288_29.txt")
+def test_should_convert_complex_tree_file_to_strategies_file(temp_output_file: Path):
+    test_usecase_folder = test_folder.joinpath("complex_tree")
+    exemple_tree_file = test_usecase_folder.joinpath("source_tree.txt")
+    expected_strategies_file = test_usecase_folder.joinpath("all_strategies.txt")
+    if IGNORE_ALWAYS_FALSE_STRATEGIES:
+        expected_strategies_file = test_usecase_folder.joinpath(
+            "always_possible_strategies.txt"
+        )
 
     main(exemple_tree_file, temp_output_file)
 
