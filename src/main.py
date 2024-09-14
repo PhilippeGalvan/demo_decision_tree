@@ -280,7 +280,7 @@ def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
     return strategies
 
 
-def main(tree_file_path: Path, strategies_file_path: Path):
+def main(tree_file_path: Path, strategies_file_path: Path) -> None:
     with open(tree_file_path) as f:
         tree = f.read()
 
