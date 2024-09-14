@@ -1,3 +1,9 @@
+"""
+To avoid storing data in memory for strategies, a yield strategy can be applied
+This logic can also be applied to the file reader (instead of storing an in memory image of the tree, we can crawl linarly through it each time instead of accessing the dict)
+Another trick would be to store the tree in a db and benefit from indexed access :p
+"""
+
 from collections import defaultdict
 from dataclasses import dataclass
 from logging import DEBUG, basicConfig, getLogger
@@ -238,9 +244,7 @@ def _tree_to_binary_tree(
     }
 
 
-def read_strategies_from_tree(
-    tree: BinaryTree, ignore_impossible: bool = True
-) -> set[Strategy]:
+def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
     strategies = set()
 
     def crawl(subtree: BinaryTree | Leaf | None, conditions: tuple[Condition, ...]):
@@ -275,7 +279,7 @@ def main(tree_file_path: Path, strategies_file_path: Path):
     tree = parse_tree(tree)
     strategies = read_strategies_from_tree(tree)
 
-    with open(strategies_file_path, "w", newline="\n") as f:
+    with open(strategies_file_path, "w") as f:
         # This is for the sake of output consistency at the expense of some memory
         serialized_strategies = sorted(
             strategy.to_human_readable_format() for strategy in strategies
