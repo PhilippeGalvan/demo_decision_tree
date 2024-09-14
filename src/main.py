@@ -65,14 +65,14 @@ class Leaf:
     value: float
 
     @classmethod
-    def from_standardized_string(cls, string: str) -> Self:
+    def from_standardized_string(cls, definition: str) -> Self:
         """
         Create a Leaf from a standardized string.
 
         >>> Leaf.from_standardized_string("0:leaf=0.0")
         Leaf(value=0.0)
         """
-        _, value = string.split(":leaf=")
+        _, value = definition.split(":leaf=")
         return cls(float(value))
 
     def __post_init__(self):
@@ -87,21 +87,21 @@ class Node:
     no: str
 
     @classmethod
-    def from_standardized_string(cls, string: str) -> Self:
+    def from_standardized_string(cls, definition: str) -> Self:
         """
         Create a Node from a standardized string.
 
         >>> Node.from_standardized_string("0:[device_type=pc] yes=1,no=2")
         Node(eligible_conditions=(Condition(feature='device_type', value='pc', is_equal=True),), yes='1', no='2')
         """
-        raw_condition, branches = string.split(":[", 1)[1].split("] ", 1)
+        raw_condition, branches = definition.split(":[", 1)[1].split("] ", 1)
 
         yes, no = branches.split(",")
         yes = yes.removeprefix("yes=").strip()
         no = no.removeprefix("no=").strip()
 
         raw_conditions = [raw_condition]
-        if "||or||" in string:
+        if "||or||" in definition:
             raw_conditions = raw_condition.split("||or||")
 
         conditions = tuple(
