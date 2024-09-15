@@ -1,9 +1,9 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, Self
+from typing import Self
 
-from .exceptions import AlwaysFalseStrategyError
-from .feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
+from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
+from src.tree_to_strategies.exceptions import AlwaysFalseStrategyError
 
 
 @dataclass(frozen=True, slots=True)

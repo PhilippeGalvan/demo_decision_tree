@@ -5,11 +5,13 @@ Another trick would be to store the tree in a db and benefit from indexed access
 """
 
 from logging import DEBUG, basicConfig, getLogger
-from pathlib import Path
 
-from .exceptions import AlwaysFalseStrategyError, NodelessTreeError
-from .local_types import BinaryTree, Tree
-from .models import Condition, Leaf, Node, Strategy
+from src.tree_to_strategies.exceptions import (
+    AlwaysFalseStrategyError,
+    NodelessTreeError,
+)
+from src.tree_to_strategies.local_types import BinaryTree, Tree
+from src.tree_to_strategies.models import Condition, Leaf, Node, Strategy
 
 basicConfig(level=DEBUG)
 logger = getLogger(__name__)
@@ -110,18 +112,6 @@ def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
     return strategies
 
 
-def main(tree_file_path: Path, strategies_file_path: Path) -> None:
-    with open(tree_file_path) as f:
-        tree = f.read()
-
+def convert_tree_to_strategies(tree: str) -> set[Strategy]:
     binary_tree = parse_tree(tree)
-    strategies = read_strategies_from_tree(binary_tree)
-
-    with open(strategies_file_path, "w") as f:
-        # This is for the sake of output consistency at the expense of some memory
-        serialized_strategies = sorted(
-            strategy.to_human_readable_format() for strategy in strategies
-        )
-        for strategy in serialized_strategies:
-            f.write(strategy)
-            f.write("\n")
+    return read_strategies_from_tree(binary_tree)

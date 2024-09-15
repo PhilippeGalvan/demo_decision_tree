@@ -2,7 +2,9 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from src.main import Condition, Leaf, NodelessTreeError, parse_tree
+from src.tree_to_strategies.app import parse_tree
+from src.tree_to_strategies.exceptions import NodelessTreeError
+from src.tree_to_strategies.models import Condition, Leaf
 
 
 def test_should_fail_for_single_leaf_tree():

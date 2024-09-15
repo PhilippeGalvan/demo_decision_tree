@@ -1,7 +1,8 @@
 import pytest
 
 from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
-from src.main import Condition, Leaf, Strategy, read_strategies_from_tree
+from src.tree_to_strategies.app import read_strategies_from_tree
+from src.tree_to_strategies.models import Condition, Leaf, Strategy
 
 
 def test_should_read_strategy_from_one_node_tree():

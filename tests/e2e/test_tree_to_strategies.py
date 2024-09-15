@@ -3,8 +3,8 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
+from src.convert_tree_file_into_strategies_file import main
 from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
-from src.main import main
 
 cwd = Path(__file__).parent
 test_folder = cwd.joinpath("test_datasets")
