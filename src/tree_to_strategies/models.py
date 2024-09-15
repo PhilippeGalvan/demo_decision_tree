@@ -2,9 +2,6 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Self
 
-from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
-from src.tree_to_strategies.exceptions import AlwaysFalseStrategyError
-
 
 @dataclass(frozen=True, slots=True)
 class Condition:
@@ -121,11 +118,8 @@ class Strategy:
         )
         return f"{formated_condition} : {self.value.value}"
 
-    def __post_init__(self):
-        if IGNORE_ALWAYS_FALSE_STRATEGIES:
-            self._forbid_always_false_strategies()
-
-    def _forbid_always_false_strategies(self) -> None:
+    @property
+    def is_not_always_false(self) -> bool:
         # This grouping by feature is O(n2) reduces the number of comparisons only to the features having multiple conditions
         conditions_grouped_by_feature: dict[str, list[Condition]] = defaultdict(list)
         for condition in self.conditions:
@@ -158,6 +152,5 @@ class Strategy:
                         has_same_feature_equality_on_different_values
                         or has_same_feature_inequality_on_same_value
                     ):
-                        raise AlwaysFalseStrategyError(
-                            f"Always false strategy: {self} for {condition_pointer} and {condition_evaluated}"
-                        )
+                        return False
+        return True
