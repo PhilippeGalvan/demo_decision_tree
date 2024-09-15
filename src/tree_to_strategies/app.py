@@ -6,7 +6,6 @@ Another trick would be to store the tree in a db and benefit from indexed access
 
 from logging import DEBUG, basicConfig, getLogger
 
-from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
 from src.tree_to_strategies.exceptions import NodelessTreeError
 from src.tree_to_strategies.local_types import BinaryTree, Tree
 from src.tree_to_strategies.models import Condition, Leaf, Node, Strategy
@@ -82,13 +81,15 @@ def _tree_to_binary_tree(
     }
 
 
-def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
+def read_strategies_from_tree(
+    tree: BinaryTree, *, ignore_always_false_strategies: bool = True
+) -> set[Strategy]:
     strategies = set()
 
     def crawl(subtree: BinaryTree | Leaf | None, conditions: tuple[Condition, ...]):
         if isinstance(subtree, Leaf):
             strategy = Strategy(conditions, subtree)
-            if not IGNORE_ALWAYS_FALSE_STRATEGIES or strategy.is_not_always_false:
+            if not ignore_always_false_strategies or strategy.is_not_always_false:
                 strategies.add(strategy)
             return
 
@@ -108,6 +109,10 @@ def read_strategies_from_tree(tree: BinaryTree) -> set[Strategy]:
     return strategies
 
 
-def convert_tree_to_strategies(tree: str) -> set[Strategy]:
+def convert_tree_to_strategies(
+    tree: str, ignore_always_false_strategies: bool
+) -> set[Strategy]:
     binary_tree = parse_tree(tree)
-    return read_strategies_from_tree(binary_tree)
+    return read_strategies_from_tree(
+        binary_tree, ignore_always_false_strategies=ignore_always_false_strategies
+    )

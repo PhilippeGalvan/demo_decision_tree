@@ -3,8 +3,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from src.convert_tree_file_into_strategies_file import main
-from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
+from src.convert_tree_file_into_strategies_file import FEATURE_FLAGS, main
 
 cwd = Path(__file__).parent
 test_folder = cwd.joinpath("test_datasets")
@@ -32,7 +31,7 @@ def test_should_convert_complex_tree_file_to_strategies_file(temp_output_file: P
     test_usecase_folder = test_folder.joinpath("complex_tree")
     exemple_tree_file = test_usecase_folder.joinpath("source_tree.txt")
     expected_strategies_file = test_usecase_folder.joinpath("all_strategies.txt")
-    if IGNORE_ALWAYS_FALSE_STRATEGIES:
+    if FEATURE_FLAGS["IGNORE_ALWAYS_FALSE_STRATEGIES"]:
         expected_strategies_file = test_usecase_folder.joinpath(
             "always_possible_strategies.txt"
         )

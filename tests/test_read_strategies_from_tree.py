@@ -1,6 +1,5 @@
 import pytest
 
-from src.feature_flags import IGNORE_ALWAYS_FALSE_STRATEGIES
 from src.tree_to_strategies.app import read_strategies_from_tree
 from src.tree_to_strategies.models import Condition, Leaf, Strategy
 
@@ -13,7 +12,9 @@ def test_should_read_strategy_from_one_node_tree():
         },
     }
 
-    strategies = read_strategies_from_tree(one_node_tree)
+    strategies = read_strategies_from_tree(
+        one_node_tree, ignore_always_false_strategies=False
+    )
 
     assert strategies == {
         Strategy((Condition("device_type", "pc", is_equal=True),), Leaf(1.0)),
@@ -55,10 +56,6 @@ def test_should_read_strategy_from_nested_node_tree():
     }
 
 
-@pytest.mark.skipif(
-    not IGNORE_ALWAYS_FALSE_STRATEGIES,
-    reason="feature is disabled in this configuration",
-)
 def test_should_ignore_always_false_strategies_when_same_feature_and_value_with_opposite_statement():
     always_false_strategy_tree = {
         Condition("device_type", "pc", is_equal=True): {
@@ -77,10 +74,6 @@ def test_should_ignore_always_false_strategies_when_same_feature_and_value_with_
     assert strategies == set()
 
 
-@pytest.mark.skipif(
-    not IGNORE_ALWAYS_FALSE_STRATEGIES,
-    reason="feature is disabled in this configuration",
-)
 def test_should_ignore_always_false_strategies_when_same_feature_and_equality_on_different_values():
     always_false_strategy_tree = {
         Condition("device_type", "pc", is_equal=True): {
