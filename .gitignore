@@ -1,4 +1,5 @@
 .coverage
 __pycache__
 .env*
-questions.md
+.mypy_cache
+.pytest_cache
