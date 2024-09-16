@@ -61,3 +61,14 @@ echo "0:[device_type=pc||or||browser=7] yes=2,no=1
 " > demo/provided_tree.txt
 poetry run python src/convert_tree_file_into_strategies_file.py demo/provided_tree.txt demo/outputs/strategies.txt
 ```
+
+## Quality checks
+Static type checking:
+```bash
+poetry run mypy src/
+```
+
+Cyclomatic complexity evaluation:
+```bash
+poetry run radon cc -s src/
+```
