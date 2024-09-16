@@ -3,7 +3,7 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from src.convert_tree_file_into_strategies_file import FEATURE_FLAGS, main
+from src.convert_tree_file_into_strategies_file import main
 
 cwd = Path(__file__).parent
 test_folder = cwd.joinpath("test_datasets")
@@ -27,16 +27,35 @@ def temp_file_factory():
         yield _temp_file_factory
 
 
-def test_should_convert_complex_tree_file_to_strategies_file(temp_output_file: Path):
+@pytest.mark.parametrize(
+    [
+        "are_always_false_strategies_ignored",
+        "expected_strategies_file",
+    ],
+    [
+        pytest.param(
+            False, "all_strategies.txt", id="always_false_strategies_included"
+        ),
+        pytest.param(
+            True, "always_possible_strategies.txt", id="always_false_strategies_ignored"
+        ),
+    ],
+)
+def test_should_convert_complex_tree_file_to_strategies_file(
+    temp_output_file: Path,
+    are_always_false_strategies_ignored: bool,
+    expected_strategies_file: str,
+):
     test_usecase_folder = test_folder.joinpath("complex_tree")
     exemple_tree_file = test_usecase_folder.joinpath("source_tree.txt")
-    expected_strategies_file = test_usecase_folder.joinpath("all_strategies.txt")
-    if FEATURE_FLAGS["IGNORE_ALWAYS_FALSE_STRATEGIES"]:
-        expected_strategies_file = test_usecase_folder.joinpath(
-            "always_possible_strategies.txt"
-        )
 
-    main(exemple_tree_file, temp_output_file)
+    expected_strategies_file = test_usecase_folder.joinpath(expected_strategies_file)
+
+    main(
+        exemple_tree_file,
+        temp_output_file,
+        ignore_always_false_strategies=are_always_false_strategies_ignored,
+    )
 
     with open(temp_output_file) as f:
         strategies = f.read()
@@ -67,7 +86,7 @@ def test_should_format_1_node_strategy_to_expected_format(
         # fmt: on
     )
 
-    main(exemple_tree_file, temp_output_file)
+    main(exemple_tree_file, temp_output_file, ignore_always_false_strategies=True)
 
     with open(temp_output_file) as f:
         strategies = f.read()
@@ -98,7 +117,7 @@ def test_should_format_nested_strategy_to_expected_format(
         # fmt: on
     )
 
-    main(exemple_tree_file, temp_output_file)
+    main(exemple_tree_file, temp_output_file, ignore_always_false_strategies=True)
 
     with open(temp_output_file) as f:
         strategies = f.read()
@@ -127,7 +146,7 @@ def test_should_format_or_strategy_to_expected_format(
         # fmt: on
     )
 
-    main(exemple_tree_file, temp_output_file)
+    main(exemple_tree_file, temp_output_file, ignore_always_false_strategies=True)
 
     with open(temp_output_file) as f:
         strategies = f.read()
